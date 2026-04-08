@@ -1,0 +1,256 @@
+{
+  "name": "project-copy",
+  "displayName": "Project Copy",
+  "description": "Copy files, folders, and workspace contents from the Explorer to the clipboard.",
+  "version": "0.1.0",
+  "publisher": "your-publisher-id",
+  "engines": {
+    "vscode": "^1.104.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "keywords": [
+    "clipboard",
+    "project structure",
+    "file content",
+    "code sharing",
+    "tree view",
+    "markdown",
+    "copy"
+  ],
+  "icon": "images/icon.png",
+  "galleryBanner": {
+    "color": "#092032",
+    "theme": "dark"
+  },
+  "preview": false,
+  "pricing": "Free",
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "projectCopy.copyFile",
+        "title": "Copy File Contents (Project Copy)"
+      },
+      {
+        "command": "projectCopy.copyFolder",
+        "title": "Copy Folder Contents (Project Copy)"
+      },
+      {
+        "command": "projectCopy.copyFolderStructure",
+        "title": "Copy Folder Structure (Project Copy)"
+      },
+      {
+        "command": "projectCopy.copySelectedItems",
+        "title": "Copy Selected Items (Project Copy)"
+      },
+      {
+        "command": "projectCopy.copyOpenRootFolder",
+        "title": "Copy Workspace Contents (Project Copy)",
+        "icon": "$(copy)"
+      },
+      {
+        "command": "projectCopy.excludeContent",
+        "title": "Exclude Content from Copy (Project Copy)"
+      },
+      {
+        "command": "projectCopy.includeContent",
+        "title": "Include Content Again (Project Copy)",
+        "icon": "$(close)"
+      }
+    ],
+    "views": {
+      "explorer": [
+        {
+          "id": "projectCopyExcludedContent",
+          "name": "Project Copy: Excluded Content",
+          "icon": "exclude"
+        }
+      ]
+    },
+    "submenus": [
+      {
+        "id": "projectCopy.submenu",
+        "label": "Project Copy"
+      }
+    ],
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "projectCopy.copyFile",
+          "when": "false"
+        },
+        {
+          "command": "projectCopy.copyFolder",
+          "when": "false"
+        },
+        {
+          "command": "projectCopy.copyFolderStructure",
+          "when": "false"
+        },
+        {
+          "command": "projectCopy.copySelectedItems",
+          "when": "false"
+        },
+        {
+          "command": "projectCopy.copyOpenRootFolder",
+          "when": "workspaceFolderCount > 0"
+        },
+        {
+          "command": "projectCopy.excludeContent",
+          "when": "false"
+        },
+        {
+          "command": "projectCopy.includeContent",
+          "when": "false"
+        }
+      ],
+      "explorer/context": [
+        {
+          "submenu": "projectCopy.submenu",
+          "group": "6_copypath@9",
+          "when": "resourceSet"
+        }
+      ],
+      "projectCopy.submenu": [
+        {
+          "command": "projectCopy.copyFile",
+          "group": "1_copy@1",
+          "when": "resourceSet && !listMultiSelection && !explorerResourceIsFolder"
+        },
+        {
+          "command": "projectCopy.copyFolder",
+          "group": "1_copy@2",
+          "when": "resourceSet && !listMultiSelection && explorerResourceIsFolder"
+        },
+        {
+          "command": "projectCopy.copyFolderStructure",
+          "group": "1_copy@3",
+          "when": "resourceSet && !listMultiSelection && explorerResourceIsFolder"
+        },
+        {
+          "command": "projectCopy.copySelectedItems",
+          "group": "1_copy@4",
+          "when": "resourceSet && listMultiSelection"
+        },
+        {
+          "command": "projectCopy.excludeContent",
+          "group": "2_manage@1",
+          "when": "resourceSet"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "projectCopy.includeContent",
+          "group": "inline",
+          "when": "view == projectCopyExcludedContent && viewItem == projectCopyExcludedContentItem"
+        }
+      ]
+    },
+    "viewsWelcome": [
+      {
+        "view": "projectCopyExcludedContent",
+        "contents": "No excluded content yet.\n\nRight-click a file or folder and choose **Exclude Content from Copy**."
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "projectCopy.copyOpenRootFolder",
+        "key": "ctrl+alt+c",
+        "mac": "cmd+alt+c",
+        "when": "workspaceFolderCount > 0"
+      }
+    ],
+    "configuration": [
+      {
+        "title": "Project Copy",
+        "properties": {
+          "projectCopy.ignoreGitIgnore": {
+            "type": "boolean",
+            "default": true,
+            "description": "Skip files and folders matched by your root .gitignore."
+          },
+          "projectCopy.maxDepth": {
+            "type": "number",
+            "default": 5,
+            "description": "Only limits the tree preview. Deep files still get copied."
+          },
+          "projectCopy.ignorePatterns": {
+            "type": "array",
+            "default": [
+              ".*",
+              "node_modules",
+              "out/**",
+              "dist/**",
+              "coverage/**",
+              "package-lock.json",
+              "pnpm-lock.yaml",
+              "yarn.lock",
+              "*.log"
+            ],
+            "items": {
+              "type": "string"
+            },
+            "description": "Skip files and folders that match these patterns.",
+            "scope": "resource"
+          },
+          "projectCopy.outputFormat": {
+            "type": "string",
+            "enum": [
+              "plaintext",
+              "markdown",
+              "xml"
+            ],
+            "default": "markdown",
+            "description": "Choose the copy format."
+          },
+          "projectCopy.maxFileSize": {
+            "type": "number",
+            "default": 1048576,
+            "description": "If a file is bigger than this, show a size note instead of its contents."
+          },
+          "projectCopy.includeProjectTree": {
+            "type": "boolean",
+            "default": true,
+            "description": "Add the folder tree before the copied files."
+          },
+          "projectCopy.excludeContentPatterns": {
+            "type": "array",
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "description": "Keep matching files in the tree, but hide their contents.",
+            "scope": "resource"
+          }
+        }
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src",
+    "test": "vscode-test --config ./vscode-test.config.js"
+  },
+  "devDependencies": {
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^20.19.19",
+    "@types/vscode": "^1.104.0",
+    "@typescript-eslint/eslint-plugin": "^8.45.0",
+    "@typescript-eslint/parser": "^8.45.0",
+    "@vscode/test-cli": "^0.0.11",
+    "@vscode/test-electron": "^2.5.2",
+    "eslint": "^9.37.0",
+    "mocha": "^11.7.4",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "ignore": "^7.0.5",
+    "isbinaryfile": "^5.0.6"
+  },
+  "license": "MIT"
+}

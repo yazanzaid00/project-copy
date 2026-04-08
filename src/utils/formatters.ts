@@ -1,0 +1,154 @@
+import { FileContent, OutputFormat } from '../types';
+
+export class OutputFormatter {
+    
+    public static formatOutput(
+        format: OutputFormat,
+        projectTree: string,
+        content: ReadonlyArray<FileContent>
+    ): string {
+        switch (format) {
+            case 'markdown':
+                return this.formatMarkdown(projectTree, content);
+            case 'xml':
+                return this.formatXML(projectTree, content);
+            case 'plaintext':
+            default:
+                return this.formatPlainText(projectTree, content);
+        }
+    }
+
+    private static formatMarkdown(projectTree: string, content: ReadonlyArray<FileContent>): string {
+        let output = '';
+        
+        if (projectTree) {
+            const fence = this.getMarkdownFence(projectTree);
+            output += `# Project Structure\n\n${fence}\n${projectTree}${fence}\n\n`;
+        }
+        
+        if (content.length > 0) {
+            output += '# File Contents\n\n';
+            for (const file of content) {
+                const fileExtension = this.getFileExtension(file.path);
+                const fence = this.getMarkdownFence(file.content);
+                output += `## ${file.path}\n\n${fence}${fileExtension}\n${file.content}\n${fence}\n\n`;
+            }
+        }
+        
+        return output;
+    }
+
+    private static formatPlainText(projectTree: string, content: ReadonlyArray<FileContent>): string {
+        let output = '';
+        
+        if (projectTree) {
+            output += 'Project Structure:\n\n' + projectTree + '\n\n';
+        }
+        
+        if (content.length > 0) {
+            output += 'File Contents:\n\n';
+            for (const file of content) {
+                output += `--- ${file.path} ---\n${file.content}\n\n`;
+            }
+        }
+        
+        return output;
+    }
+
+    private static formatXML(projectTree: string, content: ReadonlyArray<FileContent>): string {
+        let output = '<?xml version="1.0" encoding="UTF-8"?>\n<projectCopy>\n';
+        
+        if (projectTree) {
+            output += '  <project_structure>\n';
+            output += projectTree.split('\n')
+                .map(line => '    ' + this.escapeXML(line))
+                .join('\n');
+            output += '\n  </project_structure>\n';
+        }
+        
+        if (content.length > 0) {
+            output += '  <file_contents>\n';
+            for (const file of content) {
+                output += `    <file path="${this.escapeXML(file.path)}">\n`;
+                // CDATA prevents XML parsing issues with code that contains <, >, & characters
+                output += '      <![CDATA[' + file.content + ']]>\n';
+                output += '    </file>\n';
+            }
+            output += '  </file_contents>\n';
+        }
+        
+        output += '</projectCopy>';
+        return output;
+    }
+
+    private static getFileExtension(filePath: string): string {
+        const parts = filePath.split('.');
+        // Edge case: .gitignore, .env files have no extension despite containing dots
+        if (parts.length <= 1 || parts[parts.length - 1] === '') {
+            return '';
+        }
+        
+        const ext = parts.pop()?.toLowerCase();
+        
+        // Extension mapping optimized for syntax highlighting in Markdown viewers
+        // Maps file extensions to language identifiers recognized by most syntax highlighters
+        const extensionMap: Record<string, string> = {
+            'js': 'javascript',
+            'ts': 'typescript',
+            'jsx': 'jsx',
+            'tsx': 'tsx',
+            'py': 'python',
+            'rb': 'ruby',
+            'go': 'go',
+            'rs': 'rust',
+            'php': 'php',
+            'java': 'java',
+            'c': 'c',
+            'cpp': 'cpp',
+            'cs': 'csharp',
+            'html': 'html',
+            'css': 'css',
+            'scss': 'scss',
+            'sass': 'sass',
+            'less': 'less',
+            'json': 'json',
+            'xml': 'xml',
+            'yaml': 'yaml',
+            'yml': 'yaml',
+            'md': 'markdown',
+            'sh': 'bash',
+            'ps1': 'powershell',
+            'sql': 'sql',
+            'dockerfile': 'dockerfile'
+        };
+
+        return ext ? (extensionMap[ext] || ext) : '';
+    }
+
+    private static escapeXML(unsafe: string): string {
+        // XML character escaping per W3C specification
+        // See: https://www.w3.org/TR/xml/#sec-predefined-ent
+        return unsafe
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
+    /**
+     * Returns a markdown fence longer than any fence in content.
+     * E.g., content with ``` returns ````, content with ```` returns `````.
+     */
+    public static getMarkdownFence(content: string): string {
+        const backtickSequences = content.match(/`{3,}/g);
+        if (!backtickSequences) {
+            return '```';
+        }
+        const longestSequence = backtickSequences.reduce(
+            (max, sequence) => Math.max(max, sequence.length),
+            0
+        );
+        return '`'.repeat(longestSequence + 1);
+    }
+} 

@@ -1,0 +1,19 @@
+{
+    "projectCopy.ignoreGitIgnore": true,
+    "projectCopy.maxDepth": 5,
+    "projectCopy.ignorePatterns": [
+        ".*",
+        "node_modules",
+        "out/**",
+        "dist/**",
+        "coverage/**",
+        "package-lock.json",
+        "pnpm-lock.yaml",
+        "yarn.lock",
+        "*.log",
+        "src/config/**"
+    ],
+    "projectCopy.excludeContentPatterns": [
+        "vendor/**"
+    ]
+}
