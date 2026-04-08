@@ -3,7 +3,7 @@
   "displayName": "Project Copy",
   "description": "Copy files, folders, and workspace contents from the Explorer to the clipboard.",
   "version": "0.1.0",
-  "publisher": "your-publisher-id",
+  "publisher": "personalZ",
   "engines": {
     "vscode": "^1.104.0"
   },
