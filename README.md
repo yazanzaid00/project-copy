@@ -18,9 +18,9 @@ Project Copy is a VS Code extension for copying what you pick in the Explorer to
 
 In the Explorer, right-click:
 
-- A folder: choose `Copy Folder Contents`, `Copy Folder Structure`, or `Exclude Content from Copy`
-- A file: choose `Copy File Contents` or `Exclude Content from Copy`
-- Multiple selected items in the same workspace folder: choose `Copy Selected Items` or `Exclude Content from Copy`
+- A folder: choose `Copy Contents`, `Copy Structure`, or `Hide Contents from Copy`
+- A file: choose `Copy Contents` or `Hide Contents from Copy`
+- Multiple selected items in the same workspace folder: choose `Copy Contents` or `Hide Contents from Copy`
 
 Blank Explorer space is not used as a Project Copy action surface.
 
@@ -28,7 +28,7 @@ Use the File Explorer title menu for the workspace root:
 
 - `Copy Workspace Contents`
 - `Copy Workspace Structure`
-- `Exclude Workspace Content from Copy`
+- `Hide Workspace Contents from Copy`
 
 Use the Command Palette or the keyboard shortcut for the workspace-root `Copy Workspace Contents` action.
 
@@ -42,11 +42,23 @@ After copying, the notification tells you what was copied.
 | --- | --- | --- |
 | `projectCopy.ignoreGitIgnore` | Skip files and folders matched by your root `.gitignore`. | `true` |
 | `projectCopy.ignorePatterns` | Skip files and folders that match these patterns. | `[".*", "node_modules", "out", "out/**", "dist", "dist/**", "coverage", "coverage/**", "package-lock.json", "pnpm-lock.yaml", "yarn.lock", "*.log"]` |
-| `projectCopy.maxDepth` | Only limits the tree preview. Deep files still get copied. | `5` |
+| `projectCopy.maxDepth` | Limits only the tree preview depth. It does not limit which files are copied. | `5` |
 | `projectCopy.outputFormat` | Choose the copy format. | `"markdown"` |
 | `projectCopy.maxFileSize` | If a file is bigger than this, show a size note instead of its contents. | `1048576` |
 | `projectCopy.includeProjectTree` | Add the folder tree before the copied files. | `true` |
-| `projectCopy.excludeContentPatterns` | Keep matching files in the tree, but hide their contents. | `[]` |
+| `projectCopy.excludeContentPatterns` | Keep matching files in the tree, but hide their contents in copied output. | `[]` |
+
+## How Filtering Works
+
+- `projectCopy.ignorePatterns`: excludes matching files/folders entirely from both tree and copied content. The default includes `.*`, so dotfiles are skipped unless you change this setting.
+- `projectCopy.ignoreGitIgnore`: when enabled, root `.gitignore` rules are also excluded from both tree and copied content.
+- `projectCopy.excludeContentPatterns`: keeps matching files listed in the tree, but replaces their copied body with a placeholder.
+
+Examples:
+
+- Ignore fully: `node_modules/**`
+- Hide content only: `**/*.png`
+- Hide an entire folder's file bodies but keep paths listed: `src/secrets/**`
 
 Example `.vscode/settings.json`:
 

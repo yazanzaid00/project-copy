@@ -77,15 +77,15 @@ suite('Project Copy', () => {
             );
             assert.strictEqual(
                 commands['projectCopy.copyOpenRootFolder'],
-                'Copy Workspace Contents (Project Copy)'
+                'Copy Workspace Contents'
             );
             assert.strictEqual(
                 commands['projectCopy.copyOpenRootFolderStructure'],
-                'Copy Workspace Structure (Project Copy)'
+                'Copy Workspace Structure'
             );
             assert.strictEqual(
                 commands['projectCopy.excludeOpenRootContent'],
-                'Exclude Workspace Content from Copy (Project Copy)'
+                'Hide Workspace Contents from Copy'
             );
             assert.strictEqual(
                 explorerSubmenuItems['projectCopy.copyFile'],

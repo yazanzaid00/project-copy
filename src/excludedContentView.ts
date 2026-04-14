@@ -60,7 +60,7 @@ function buildTreeItem(
                 description: joinDescription(workspaceFolder, relativePath, isMultiRoot),
                 resourceUri,
                 iconPath: new vscode.ThemeIcon('folder'),
-                tooltip: `Content excluded from copy for ${relativePath}`
+                tooltip: `Contents hidden from copy for ${relativePath}`
             }
         );
     }
@@ -77,7 +77,7 @@ function buildTreeItem(
                 description: joinDescription(workspaceFolder, pattern, isMultiRoot),
                 resourceUri: vscode.Uri.joinPath(workspaceFolder.uri, ...pattern.split('/')),
                 iconPath: new vscode.ThemeIcon('file'),
-                tooltip: `Content excluded from copy for ${pattern}`
+                tooltip: `Contents hidden from copy for ${pattern}`
             }
         );
     }
@@ -92,7 +92,7 @@ function buildTreeItem(
             label: pattern,
             description: isMultiRoot ? workspaceFolder.name : 'Pattern',
             iconPath: new vscode.ThemeIcon('filter'),
-            tooltip: `Content excluded from copy for pattern ${pattern}`
+            tooltip: `Contents hidden from copy for pattern ${pattern}`
         }
     );
 }

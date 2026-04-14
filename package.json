@@ -31,40 +31,40 @@
     "commands": [
       {
         "command": "projectCopy.copyFile",
-        "title": "Copy File Contents (Project Copy)"
+        "title": "Copy Contents"
       },
       {
         "command": "projectCopy.copyFolder",
-        "title": "Copy Folder Contents (Project Copy)"
+        "title": "Copy Contents"
       },
       {
         "command": "projectCopy.copyFolderStructure",
-        "title": "Copy Folder Structure (Project Copy)"
+        "title": "Copy Structure"
       },
       {
         "command": "projectCopy.copySelectedItems",
-        "title": "Copy Selected Items (Project Copy)"
+        "title": "Copy Contents"
       },
       {
         "command": "projectCopy.copyOpenRootFolder",
-        "title": "Copy Workspace Contents (Project Copy)",
+        "title": "Copy Workspace Contents",
         "icon": "$(copy)"
       },
       {
         "command": "projectCopy.copyOpenRootFolderStructure",
-        "title": "Copy Workspace Structure (Project Copy)"
+        "title": "Copy Workspace Structure"
       },
       {
         "command": "projectCopy.excludeContent",
-        "title": "Exclude Content from Copy (Project Copy)"
+        "title": "Hide Contents from Copy"
       },
       {
         "command": "projectCopy.excludeOpenRootContent",
-        "title": "Exclude Workspace Content from Copy (Project Copy)"
+        "title": "Hide Workspace Contents from Copy"
       },
       {
         "command": "projectCopy.includeContent",
-        "title": "Include Content Again (Project Copy)",
+        "title": "Show Contents in Copy",
         "icon": "$(close)"
       }
     ],
@@ -72,7 +72,8 @@
       "explorer": [
         {
           "id": "projectCopyExcludedContent",
-          "name": "Project Copy: Excluded Content",
+          "name": "Hidden from Copy",
+          "visibility": "collapsed",
           "icon": "exclude"
         }
       ]
@@ -184,7 +185,7 @@
     "viewsWelcome": [
       {
         "view": "projectCopyExcludedContent",
-        "contents": "No excluded content yet.\n\nRight-click a file or folder, or use the File Explorer title menu, and choose **Exclude Content from Copy**."
+        "contents": "Nothing hidden from copy yet.\n\nRight-click a file or folder, or use the File Explorer title menu, and choose **Hide Contents from Copy**."
       }
     ],
     "keybindings": [
@@ -207,7 +208,7 @@
           "projectCopy.maxDepth": {
             "type": "number",
             "default": 5,
-            "description": "Only limits the tree preview. Deep files still get copied."
+            "description": "Limits only the tree preview depth. It does not limit which files are copied."
           },
           "projectCopy.ignorePatterns": {
             "type": "array",
@@ -228,7 +229,7 @@
             "items": {
               "type": "string"
             },
-            "description": "Skip files and folders that match these patterns.",
+            "description": "Skip files and folders that match these patterns. By default this includes dotfiles (\".*\").",
             "scope": "resource"
           },
           "projectCopy.outputFormat": {
@@ -257,7 +258,7 @@
             "items": {
               "type": "string"
             },
-            "description": "Keep matching files in the tree, but hide their contents.",
+            "description": "Keep matching files in the tree, but hide their contents in copied output.",
             "scope": "resource"
           }
         }

@@ -2,12 +2,12 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as vscode from 'vscode';
 
-import { CancellationToken, CopyTargetKind, FileContent, ProcessFileOptions, ProgressReporter, ProjectCopyOptions } from './types';
 import {
     EXCLUDED_CONTENT_VIEW_ID,
     ExcludedContentTreeItem,
     ExcludedContentViewProvider
 } from './excludedContentView';
+import { CancellationToken, FileContent, ProcessFileOptions, ProgressReporter, ProjectCopyOptions } from './types';
 import { ConfigurationService } from './utils/configuration';
 import { FileProcessor } from './utils/fileProcessor';
 import { OutputFormatter } from './utils/formatters';
@@ -68,13 +68,13 @@ function buildCopySummary(
         return `Copied workspace structure: ${rootLabel} (${format})`;
     }
     if (options.copyKind === 'folder') {
-        return `Copied folder contents: ${rootLabel}, ${pluralizeFiles(fileCount)} (${format})`;
+        return `Copied folder contents (using "${rootLabel}" as root): ${pluralizeFiles(fileCount)} (${format})`;
     }
     if (options.copyKind === 'file') {
         return `Copied file contents: ${rootLabel} (${format})`;
     }
     if (options.copyKind === 'selectedItems') {
-        return `Copied ${rootLabel}: ${pluralizeFiles(fileCount)} (${format})`;
+        return `Copied selected items relative to workspace root: ${pluralizeFiles(fileCount)} (${format})`;
     }
     if (options.copyKind === 'folderStructure') {
         return `Copied folder structure: ${rootLabel} (${format})`;
@@ -82,21 +82,8 @@ function buildCopySummary(
     return `Copied selection: ${rootLabel}, ${pluralizeFiles(fileCount)} (${format})`;
 }
 
-function showCopyMessage(
-    message: string,
-    detailsLabel?: string,
-    detailsMessage?: string
-): void {
-    if (!detailsLabel || !detailsMessage) {
-        void vscode.window.showInformationMessage(message);
-        return;
-    }
-
-    void vscode.window.showInformationMessage(message, detailsLabel).then(selection => {
-        if (selection === detailsLabel) {
-            void vscode.window.showInformationMessage(detailsMessage);
-        }
-    });
+function showCopyMessage(message: string): void {
+    void vscode.window.showInformationMessage(message);
 }
 
 export class ProjectCopyService {
@@ -197,11 +184,7 @@ export class ProjectCopyService {
                         config.outputFormat,
                         0
                     );
-                    showCopyMessage(
-                        copySummary,
-                        options.detailsLabel,
-                        options.detailsMessage || projectRootPath
-                    );
+                    showCopyMessage(copySummary);
 
                     return;
                 }
@@ -264,11 +247,7 @@ export class ProjectCopyService {
                     config.outputFormat,
                     processedContent.length
                 );
-                showCopyMessage(
-                    copySummary,
-                    options.detailsLabel,
-                    options.detailsMessage || projectRootPath
-                );
+                showCopyMessage(copySummary);
                 
             } catch (error) {
                 throw error;
@@ -372,22 +351,22 @@ function buildChangeSummary(
     changed: ReadonlyArray<ExcludedContentTarget>,
     unchangedCount: number
 ): string {
-    const verb = action === 'exclude' ? 'excluded from copy' : 'included again';
+    const verb = action === 'exclude' ? 'hidden from copy' : 'shown in copy';
     const unchangedSuffix = changed.length > 0 && unchangedCount > 0
-        ? ` ${pluralizeItems(unchangedCount)} ${unchangedCount === 1 ? 'was' : 'were'} already ${action === 'exclude' ? 'excluded' : 'included'}.`
+        ? ` ${pluralizeItems(unchangedCount)} ${unchangedCount === 1 ? 'was' : 'were'} already ${action === 'exclude' ? 'hidden' : 'shown'}.`
         : '';
 
     if (changed.length === 0) {
         return action === 'exclude'
-            ? `Content was already excluded from copy for ${pluralizeItems(unchangedCount)}.`
-            : `Content was already included for ${pluralizeItems(unchangedCount)}.`;
+            ? `Contents were already hidden from copy for ${pluralizeItems(unchangedCount)}.`
+            : `Contents were already shown in copy for ${pluralizeItems(unchangedCount)}.`;
     }
 
     if (changed.length === 1) {
-        return `Content ${verb}: ${changed[0].displayPath}.${unchangedSuffix}`;
+        return `Contents ${verb}: ${changed[0].displayPath}.${unchangedSuffix}`;
     }
 
-    return `Content ${verb} for ${pluralizeItems(changed.length)}.${unchangedSuffix}`;
+    return `Contents ${verb} for ${pluralizeItems(changed.length)}.${unchangedSuffix}`;
 }
 
 function isExcludedContentTreeItem(value: unknown): value is ExcludedContentTreeItem {
@@ -565,13 +544,13 @@ export function activate(context: vscode.ExtensionContext): void {
                 }
 
                 if (items.length > 1) {
-                    throw new Error('Multiple items selected. Use Copy Selected Items instead.');
+                    throw new Error('Multiple items selected. Use Copy Contents on the selection instead.');
                 }
 
                 const selectedUri = items[0];
                 const stat = await vscode.workspace.fs.stat(selectedUri);
                 if ((stat.type & vscode.FileType.Directory) !== 0) {
-                    throw new Error('Selected item is a folder. Use Copy Folder Contents instead.');
+                    throw new Error('Selected item is a folder. Use Copy Contents instead.');
                 }
 
                 await ProjectCopyService.copyToClipboard(selectedUri, undefined, {
@@ -597,7 +576,7 @@ export function activate(context: vscode.ExtensionContext): void {
 
                 const stat = await vscode.workspace.fs.stat(uri);
                 if ((stat.type & vscode.FileType.Directory) === 0) {
-                    throw new Error('Selected item is a file. Use Copy File Contents instead.');
+                    throw new Error('Selected item is a file. Use Copy Contents instead.');
                 }
 
                 await ProjectCopyService.copyToClipboard(uri, undefined, {
@@ -652,7 +631,7 @@ export function activate(context: vscode.ExtensionContext): void {
                 }
 
                 if (items.length === 1) {
-                    throw new Error('Only one item selected. Use Copy File Contents or Copy Folder Contents instead.');
+                    throw new Error('Only one item selected. Use Copy Contents instead.');
                 }
 
                 const firstWorkspaceFolder = vscode.workspace.getWorkspaceFolder(items[0]);
@@ -766,3 +745,4 @@ export { FileProcessor } from './utils/fileProcessor';
 export { OutputFormatter } from './utils/formatters';
 export { IgnoreUtils } from './utils/ignoreUtils';
 export { ProjectTreeGenerator } from './utils/projectTree';
+
