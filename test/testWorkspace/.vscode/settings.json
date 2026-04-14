@@ -4,8 +4,11 @@
     "projectCopy.ignorePatterns": [
         ".*",
         "node_modules",
+        "out",
         "out/**",
+        "dist",
         "dist/**",
+        "coverage",
         "coverage/**",
         "package-lock.json",
         "pnpm-lock.yaml",

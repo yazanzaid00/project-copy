@@ -31,6 +31,9 @@ function buildProgressTitle(options: Readonly<ProjectCopyOptions>): string {
     if (options.copyKind === 'openRootFolder') {
         return `Project Copy: Copying workspace contents${labelSuffix}...`;
     }
+    if (options.copyKind === 'openRootFolderStructure') {
+        return `Project Copy: Copying workspace structure${labelSuffix}...`;
+    }
     if (options.copyKind === 'folder') {
         return `Project Copy: Copying folder contents${labelSuffix}...`;
     }
@@ -60,6 +63,9 @@ function buildCopySummary(
 
     if (options.copyKind === 'openRootFolder') {
         return `Copied workspace contents: ${rootLabel}, ${pluralizeFiles(fileCount)} (${format})`;
+    }
+    if (options.copyKind === 'openRootFolderStructure') {
+        return `Copied workspace structure: ${rootLabel} (${format})`;
     }
     if (options.copyKind === 'folder') {
         return `Copied folder contents: ${rootLabel}, ${pluralizeFiles(fileCount)} (${format})`;
@@ -691,6 +697,44 @@ export function activate(context: vscode.ExtensionContext): void {
             }
         }
     );
+
+    const copyOpenRootFolderStructureCommand = vscode.commands.registerCommand(
+        'projectCopy.copyOpenRootFolderStructure',
+        async (uri?: vscode.Uri) => {
+            try {
+                const target = await resolveOpenRootFolderTarget(uri);
+                await ProjectCopyService.copyToClipboard(target.uri, undefined, {
+                    useSelectedFolderAsRoot: false,
+                    structureOnly: true,
+                    copyKind: 'openRootFolderStructure',
+                    rootLabel: target.rootLabel,
+                    detailsLabel: 'Show path',
+                    detailsMessage: target.uri.fsPath
+                });
+            } catch (error) {
+                const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+                vscode.window.showErrorMessage(`Error: ${errorMessage}`);
+            }
+        }
+    );
+
+    const excludeOpenRootContentCommand = vscode.commands.registerCommand(
+        'projectCopy.excludeOpenRootContent',
+        async (uri?: vscode.Uri) => {
+            try {
+                const target = await resolveOpenRootFolderTarget(uri);
+                const exclusionTarget = await createExcludedContentTarget(target.uri);
+                const result = await applyExcludedContentUpdate([exclusionTarget], 'exclude');
+                excludedContentViewProvider.refresh();
+                void vscode.window.showInformationMessage(
+                    buildChangeSummary('exclude', result.changed, result.unchangedCount)
+                );
+            } catch (error) {
+                const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+                vscode.window.showErrorMessage(`Error: ${errorMessage}`);
+            }
+        }
+    );
     
     context.subscriptions.push(
         excludedContentView,
@@ -701,6 +745,8 @@ export function activate(context: vscode.ExtensionContext): void {
         copyFolderStructureCommand,
         copySelectedItemsCommand,
         copyOpenRootFolderCommand,
+        copyOpenRootFolderStructureCommand,
+        excludeOpenRootContentCommand,
         vscode.workspace.onDidChangeConfiguration(event => {
             if (event.affectsConfiguration('projectCopy.excludeContentPatterns')) {
                 excludedContentViewProvider.refresh();

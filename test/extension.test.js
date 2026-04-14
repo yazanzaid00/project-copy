@@ -43,56 +43,95 @@ suite('Project Copy', () => {
             assert.ok(commands.includes('projectCopy.copyFolderStructure'));
             assert.ok(commands.includes('projectCopy.copySelectedItems'));
             assert.ok(commands.includes('projectCopy.copyOpenRootFolder'));
+            assert.ok(commands.includes('projectCopy.copyOpenRootFolderStructure'));
             assert.ok(commands.includes('projectCopy.excludeContent'));
+            assert.ok(commands.includes('projectCopy.excludeOpenRootContent'));
             assert.ok(commands.includes('projectCopy.includeContent'));
         });
 
-        test('keeps the Project Copy submenu visible in Explorer and gates child actions by context', () => {
+        test('uses Explorer submenu and File Explorer title actions', () => {
             const menus = extensionManifest.contributes.menus;
+            const commands = Object.fromEntries(
+                extensionManifest.contributes.commands.map(item => [item.command, item.title])
+            );
+            const submenus = extensionManifest.contributes.submenus;
             const explorerContextMenu = menus['explorer/context'];
-            const projectCopySubmenu = menus['projectCopy.submenu'];
-            const submenuEntry = explorerContextMenu.find(item => item.submenu === 'projectCopy.submenu');
-            const submenuItems = Object.fromEntries(
-                projectCopySubmenu.map(item => [item.command, item.when])
+            const explorerSubmenuItems = Object.fromEntries(
+                menus['projectCopy.explorerSubmenu'].map(item => [item.command, item.when])
+            );
+            const explorerSubmenuEntry = explorerContextMenu.find(item => item.submenu === 'projectCopy.explorerSubmenu');
+            const viewTitleMenu = menus['view/title'];
+            const viewTitleItems = Object.fromEntries(
+                viewTitleMenu.map(item => [item.command, item.when])
             );
 
-            assert.ok(submenuEntry, 'Project Copy submenu should be contributed to explorer/context');
+            assert.ok(Array.isArray(submenus), 'Project Copy should contribute submenus');
+            assert.ok(
+                submenus.some(item => item.id === 'projectCopy.explorerSubmenu' && item.label === 'Project Copy'),
+                'Project Copy explorer submenu should be contributed'
+            );
+            assert.ok(explorerSubmenuEntry, 'Project Copy explorer submenu should be placed in explorer/context');
             assert.strictEqual(
-                submenuEntry.when,
-                '!openEditorsFocus && workspaceFolderCount > 0'
+                explorerSubmenuEntry.when,
+                'resourceSet && isFileSystemResource && !openEditorsFocus'
             );
             assert.strictEqual(
-                submenuItems['projectCopy.copyOpenRootFolder'],
-                'workspaceFolderCount > 0'
+                commands['projectCopy.copyOpenRootFolder'],
+                'Copy Workspace Contents (Project Copy)'
             );
             assert.strictEqual(
-                submenuItems['projectCopy.copyFile'],
-                'resourceSet && isFileSystemResource && !listMultiSelection && !explorerResourceIsFolder'
+                commands['projectCopy.copyOpenRootFolderStructure'],
+                'Copy Workspace Structure (Project Copy)'
             );
             assert.strictEqual(
-                submenuItems['projectCopy.copyFolder'],
-                'resourceSet && isFileSystemResource && !listMultiSelection && explorerResourceIsFolder'
+                commands['projectCopy.excludeOpenRootContent'],
+                'Exclude Workspace Content from Copy (Project Copy)'
             );
             assert.strictEqual(
-                submenuItems['projectCopy.copyFolderStructure'],
-                'resourceSet && isFileSystemResource && !listMultiSelection && explorerResourceIsFolder'
+                explorerSubmenuItems['projectCopy.copyFile'],
+                'resourceSet && isFileSystemResource && !openEditorsFocus && !listMultiSelection && !explorerResourceIsFolder'
             );
             assert.strictEqual(
-                submenuItems['projectCopy.copySelectedItems'],
-                'resourceSet && isFileSystemResource && listMultiSelection'
+                explorerSubmenuItems['projectCopy.copyFolder'],
+                'resourceSet && isFileSystemResource && !openEditorsFocus && !listMultiSelection && explorerResourceIsFolder'
             );
             assert.strictEqual(
-                submenuItems['projectCopy.excludeContent'],
-                'resourceSet && isFileSystemResource'
+                explorerSubmenuItems['projectCopy.copyFolderStructure'],
+                'resourceSet && isFileSystemResource && !openEditorsFocus && !listMultiSelection && explorerResourceIsFolder'
+            );
+            assert.strictEqual(
+                explorerSubmenuItems['projectCopy.copySelectedItems'],
+                'resourceSet && isFileSystemResource && !openEditorsFocus && listMultiSelection'
+            );
+            assert.strictEqual(
+                explorerSubmenuItems['projectCopy.excludeContent'],
+                'resourceSet && isFileSystemResource && !openEditorsFocus'
+            );
+            assert.ok(
+                !Object.prototype.hasOwnProperty.call(explorerSubmenuItems, 'projectCopy.copyOpenRootFolder'),
+                'Root copy command should not be in explorer submenu'
+            );
+            assert.strictEqual(
+                viewTitleItems['projectCopy.copyOpenRootFolder'],
+                'view == workbench.explorer.fileView && workspaceFolderCount > 0'
+            );
+            assert.strictEqual(
+                viewTitleItems['projectCopy.copyOpenRootFolderStructure'],
+                'view == workbench.explorer.fileView && workspaceFolderCount > 0'
+            );
+            assert.strictEqual(
+                viewTitleItems['projectCopy.excludeOpenRootContent'],
+                'view == workbench.explorer.fileView && workspaceFolderCount > 0'
             );
         });
 
-        test('loads the streamlined configuration', () => {
+        test('loads the test workspace configuration overrides', () => {
             const config = ConfigurationService.getConfiguration();
 
             assert.strictEqual(config.ignoreGitIgnore, true);
             assert.ok(Array.isArray(config.ignorePatterns));
             assert.ok(config.ignorePatterns.includes('.*'));
+            assert.ok(config.ignorePatterns.includes('out'));
             assert.ok(config.ignorePatterns.includes('src/config/**'));
             assert.ok(Array.isArray(config.excludeContentPatterns));
             assert.ok(config.excludeContentPatterns.includes('vendor/**'));
@@ -132,9 +171,10 @@ suite('Project Copy', () => {
 
     suite('Ignore Helpers', () => {
         test('uses one ignore pattern list for dotfiles and custom paths', () => {
-            const ig = IgnoreUtils.createIgnoreInstance(['.*', 'dist/**']);
+            const ig = IgnoreUtils.createIgnoreInstance(['.*', 'dist', 'dist/**']);
 
             assert.strictEqual(ig.ignores('dist/app.js'), true);
+            assert.strictEqual(ig.ignores('dist'), true);
             assert.strictEqual(ig.ignores('.env'), true);
             assert.strictEqual(ig.ignores('src/.env'), true);
             assert.strictEqual(ig.ignores('src/app.js'), false);
@@ -167,6 +207,20 @@ suite('Project Copy', () => {
             assert.ok(clipboardContent.includes('[File content not included]'));
             assert.ok(!clipboardContent.includes('<redacted-test-value>'));
             assert.ok(!clipboardContent.includes('src/config/config.js'));
+        });
+
+        test('copies the open workspace structure without file contents', async function() {
+            this.timeout(15000);
+
+            await vscode.commands.executeCommand('projectCopy.copyOpenRootFolderStructure');
+            await sleep(2500);
+
+            const clipboardContent = await vscode.env.clipboard.readText();
+
+            assert.ok(clipboardContent.includes('# Project Structure'));
+            assert.ok(clipboardContent.includes('app.js'));
+            assert.ok(!clipboardContent.includes('# File Contents'));
+            assert.ok(!clipboardContent.includes('Hello from the test workspace!'));
         });
 
         test('copies a selected folder as the root', async function() {
@@ -481,6 +535,36 @@ suite('Project Copy', () => {
                 );
                 await vscode.workspace.fs.delete(fileUri);
                 await vscode.workspace.fs.delete(folderUri, { recursive: true });
+            }
+        });
+
+        test('excludes the open workspace root and lets it be included again', async function() {
+            this.timeout(10000);
+
+            const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+            assert.ok(workspaceFolder, 'Expected an open workspace folder');
+
+            const config = vscode.workspace.getConfiguration('projectCopy', workspaceFolder.uri);
+            const originalPatterns = config.get('excludeContentPatterns', []);
+
+            try {
+                await vscode.commands.executeCommand('projectCopy.excludeOpenRootContent');
+                await sleep(500);
+
+                let patterns = ConfigurationService.getConfiguration(workspaceFolder.uri).excludeContentPatterns;
+                assert.ok(patterns.includes('**'));
+
+                await vscode.commands.executeCommand('projectCopy.includeContent', workspaceFolder.uri);
+                await sleep(500);
+
+                patterns = ConfigurationService.getConfiguration(workspaceFolder.uri).excludeContentPatterns;
+                assert.ok(!patterns.includes('**'));
+            } finally {
+                await config.update(
+                    'excludeContentPatterns',
+                    originalPatterns,
+                    vscode.ConfigurationTarget.WorkspaceFolder
+                );
             }
         });
     });

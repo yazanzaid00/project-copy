@@ -51,8 +51,16 @@
         "icon": "$(copy)"
       },
       {
+        "command": "projectCopy.copyOpenRootFolderStructure",
+        "title": "Copy Workspace Structure (Project Copy)"
+      },
+      {
         "command": "projectCopy.excludeContent",
         "title": "Exclude Content from Copy (Project Copy)"
+      },
+      {
+        "command": "projectCopy.excludeOpenRootContent",
+        "title": "Exclude Workspace Content from Copy (Project Copy)"
       },
       {
         "command": "projectCopy.includeContent",
@@ -71,7 +79,7 @@
     },
     "submenus": [
       {
-        "id": "projectCopy.submenu",
+        "id": "projectCopy.explorerSubmenu",
         "label": "Project Copy"
       }
     ],
@@ -98,8 +106,16 @@
           "when": "workspaceFolderCount > 0"
         },
         {
+          "command": "projectCopy.copyOpenRootFolderStructure",
+          "when": "workspaceFolderCount > 0"
+        },
+        {
           "command": "projectCopy.excludeContent",
           "when": "false"
+        },
+        {
+          "command": "projectCopy.excludeOpenRootContent",
+          "when": "workspaceFolderCount > 0"
         },
         {
           "command": "projectCopy.includeContent",
@@ -108,41 +124,53 @@
       ],
       "explorer/context": [
         {
-          "submenu": "projectCopy.submenu",
+          "submenu": "projectCopy.explorerSubmenu",
           "group": "6_copypath@9",
-          "when": "!openEditorsFocus && workspaceFolderCount > 0"
+          "when": "resourceSet && isFileSystemResource && !openEditorsFocus"
         }
       ],
-      "projectCopy.submenu": [
-        {
-          "command": "projectCopy.copyOpenRootFolder",
-          "group": "1_copy@0",
-          "when": "workspaceFolderCount > 0"
-        },
+      "projectCopy.explorerSubmenu": [
         {
           "command": "projectCopy.copyFile",
           "group": "1_copy@1",
-          "when": "resourceSet && isFileSystemResource && !listMultiSelection && !explorerResourceIsFolder"
+          "when": "resourceSet && isFileSystemResource && !openEditorsFocus && !listMultiSelection && !explorerResourceIsFolder"
         },
         {
           "command": "projectCopy.copyFolder",
           "group": "1_copy@2",
-          "when": "resourceSet && isFileSystemResource && !listMultiSelection && explorerResourceIsFolder"
+          "when": "resourceSet && isFileSystemResource && !openEditorsFocus && !listMultiSelection && explorerResourceIsFolder"
         },
         {
           "command": "projectCopy.copyFolderStructure",
           "group": "1_copy@3",
-          "when": "resourceSet && isFileSystemResource && !listMultiSelection && explorerResourceIsFolder"
+          "when": "resourceSet && isFileSystemResource && !openEditorsFocus && !listMultiSelection && explorerResourceIsFolder"
         },
         {
           "command": "projectCopy.copySelectedItems",
           "group": "1_copy@4",
-          "when": "resourceSet && isFileSystemResource && listMultiSelection"
+          "when": "resourceSet && isFileSystemResource && !openEditorsFocus && listMultiSelection"
         },
         {
           "command": "projectCopy.excludeContent",
           "group": "2_manage@1",
-          "when": "resourceSet && isFileSystemResource"
+          "when": "resourceSet && isFileSystemResource && !openEditorsFocus"
+        }
+      ],
+      "view/title": [
+        {
+          "command": "projectCopy.copyOpenRootFolder",
+          "group": "2_projectCopy@1",
+          "when": "view == workbench.explorer.fileView && workspaceFolderCount > 0"
+        },
+        {
+          "command": "projectCopy.copyOpenRootFolderStructure",
+          "group": "2_projectCopy@2",
+          "when": "view == workbench.explorer.fileView && workspaceFolderCount > 0"
+        },
+        {
+          "command": "projectCopy.excludeOpenRootContent",
+          "group": "2_projectCopy@3",
+          "when": "view == workbench.explorer.fileView && workspaceFolderCount > 0"
         }
       ],
       "view/item/context": [
@@ -156,7 +184,7 @@
     "viewsWelcome": [
       {
         "view": "projectCopyExcludedContent",
-        "contents": "No excluded content yet.\n\nRight-click a file or folder and choose **Exclude Content from Copy**."
+        "contents": "No excluded content yet.\n\nRight-click a file or folder, or use the File Explorer title menu, and choose **Exclude Content from Copy**."
       }
     ],
     "keybindings": [
@@ -186,8 +214,11 @@
             "default": [
               ".*",
               "node_modules",
+              "out",
               "out/**",
+              "dist",
               "dist/**",
+              "coverage",
               "coverage/**",
               "package-lock.json",
               "pnpm-lock.yaml",

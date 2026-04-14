@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 
 export type CopyTargetKind =
     | 'openRootFolder'
+    | 'openRootFolderStructure'
     | 'folder'
     | 'file'
     | 'selectedItems'

@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { ProjectCopyConfiguration } from '../types';
 
-const DEFAULT_IGNORE_PATTERNS = ['.*', 'node_modules', 'out/**', 'dist/**', 'coverage/**', 'package-lock.json', 'pnpm-lock.yaml', 'yarn.lock', '*.log'];
+const DEFAULT_IGNORE_PATTERNS = ['.*', 'node_modules', 'out', 'out/**', 'dist', 'dist/**', 'coverage', 'coverage/**', 'package-lock.json', 'pnpm-lock.yaml', 'yarn.lock', '*.log'];
 
 export class ConfigurationService {
     private static readonly configSection = 'projectCopy';

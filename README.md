@@ -6,7 +6,8 @@ Project Copy is a VS Code extension for copying what you pick in the Explorer to
 
 - Context-aware Explorer actions
 - Structure-only copy action for folders
-- Workspace copy available from the Command Palette and keyboard shortcut
+- Root actions available from the File Explorer title menu
+- Root copy available from the Command Palette and keyboard shortcut
 - Respects the workspace-root `.gitignore` when enabled
 - One custom ignore list for project-level filtering, including dotfiles by default
 - Optional project tree in workspace and folder output
@@ -17,11 +18,19 @@ Project Copy is a VS Code extension for copying what you pick in the Explorer to
 
 In the Explorer, right-click:
 
-- A folder: open the `Project Copy` submenu for `Copy Folder Contents` or `Copy Folder Structure`
-- A file: open the `Project Copy` submenu for `Copy File Contents`
-- Multiple selected items in the same workspace folder: open the `Project Copy` submenu and choose `Copy Selected Items`
+- A folder: choose `Copy Folder Contents`, `Copy Folder Structure`, or `Exclude Content from Copy`
+- A file: choose `Copy File Contents` or `Exclude Content from Copy`
+- Multiple selected items in the same workspace folder: choose `Copy Selected Items` or `Exclude Content from Copy`
 
-Use the Command Palette or the keyboard shortcut for `Copy Workspace Contents`.
+Blank Explorer space is not used as a Project Copy action surface.
+
+Use the File Explorer title menu for the workspace root:
+
+- `Copy Workspace Contents`
+- `Copy Workspace Structure`
+- `Exclude Workspace Content from Copy`
+
+Use the Command Palette or the keyboard shortcut for the workspace-root `Copy Workspace Contents` action.
 
 After copying, the notification tells you what was copied.
 
@@ -32,7 +41,7 @@ After copying, the notification tells you what was copied.
 | Setting | Description | Default |
 | --- | --- | --- |
 | `projectCopy.ignoreGitIgnore` | Skip files and folders matched by your root `.gitignore`. | `true` |
-| `projectCopy.ignorePatterns` | Skip files and folders that match these patterns. | `[".*", "node_modules", "out/**", "dist/**", "coverage/**", "package-lock.json", "pnpm-lock.yaml", "yarn.lock", "*.log"]` |
+| `projectCopy.ignorePatterns` | Skip files and folders that match these patterns. | `[".*", "node_modules", "out", "out/**", "dist", "dist/**", "coverage", "coverage/**", "package-lock.json", "pnpm-lock.yaml", "yarn.lock", "*.log"]` |
 | `projectCopy.maxDepth` | Only limits the tree preview. Deep files still get copied. | `5` |
 | `projectCopy.outputFormat` | Choose the copy format. | `"markdown"` |
 | `projectCopy.maxFileSize` | If a file is bigger than this, show a size note instead of its contents. | `1048576` |
@@ -47,8 +56,11 @@ Example `.vscode/settings.json`:
   "projectCopy.ignorePatterns": [
     ".*",
     "node_modules",
+    "out",
     "out/**",
+    "dist",
     "dist/**",
+    "coverage",
     "coverage/**",
     "package-lock.json",
     "pnpm-lock.yaml",
