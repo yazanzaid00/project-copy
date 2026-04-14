@@ -2,7 +2,7 @@
   "name": "project-copy",
   "displayName": "Project Copy",
   "description": "Copy files, folders, and workspace contents from the Explorer to the clipboard.",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "publisher": "personalZ",
   "engines": {
     "vscode": "^1.104.0"
@@ -110,34 +110,39 @@
         {
           "submenu": "projectCopy.submenu",
           "group": "6_copypath@9",
-          "when": "resourceSet"
+          "when": "!openEditorsFocus && workspaceFolderCount > 0"
         }
       ],
       "projectCopy.submenu": [
         {
+          "command": "projectCopy.copyOpenRootFolder",
+          "group": "1_copy@0",
+          "when": "workspaceFolderCount > 0"
+        },
+        {
           "command": "projectCopy.copyFile",
           "group": "1_copy@1",
-          "when": "resourceSet && !listMultiSelection && !explorerResourceIsFolder"
+          "when": "resourceSet && isFileSystemResource && !listMultiSelection && !explorerResourceIsFolder"
         },
         {
           "command": "projectCopy.copyFolder",
           "group": "1_copy@2",
-          "when": "resourceSet && !listMultiSelection && explorerResourceIsFolder"
+          "when": "resourceSet && isFileSystemResource && !listMultiSelection && explorerResourceIsFolder"
         },
         {
           "command": "projectCopy.copyFolderStructure",
           "group": "1_copy@3",
-          "when": "resourceSet && !listMultiSelection && explorerResourceIsFolder"
+          "when": "resourceSet && isFileSystemResource && !listMultiSelection && explorerResourceIsFolder"
         },
         {
           "command": "projectCopy.copySelectedItems",
           "group": "1_copy@4",
-          "when": "resourceSet && listMultiSelection"
+          "when": "resourceSet && isFileSystemResource && listMultiSelection"
         },
         {
           "command": "projectCopy.excludeContent",
           "group": "2_manage@1",
-          "when": "resourceSet"
+          "when": "resourceSet && isFileSystemResource"
         }
       ],
       "view/item/context": [

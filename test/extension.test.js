@@ -47,6 +47,46 @@ suite('Project Copy', () => {
             assert.ok(commands.includes('projectCopy.includeContent'));
         });
 
+        test('keeps the Project Copy submenu visible in Explorer and gates child actions by context', () => {
+            const menus = extensionManifest.contributes.menus;
+            const explorerContextMenu = menus['explorer/context'];
+            const projectCopySubmenu = menus['projectCopy.submenu'];
+            const submenuEntry = explorerContextMenu.find(item => item.submenu === 'projectCopy.submenu');
+            const submenuItems = Object.fromEntries(
+                projectCopySubmenu.map(item => [item.command, item.when])
+            );
+
+            assert.ok(submenuEntry, 'Project Copy submenu should be contributed to explorer/context');
+            assert.strictEqual(
+                submenuEntry.when,
+                '!openEditorsFocus && workspaceFolderCount > 0'
+            );
+            assert.strictEqual(
+                submenuItems['projectCopy.copyOpenRootFolder'],
+                'workspaceFolderCount > 0'
+            );
+            assert.strictEqual(
+                submenuItems['projectCopy.copyFile'],
+                'resourceSet && isFileSystemResource && !listMultiSelection && !explorerResourceIsFolder'
+            );
+            assert.strictEqual(
+                submenuItems['projectCopy.copyFolder'],
+                'resourceSet && isFileSystemResource && !listMultiSelection && explorerResourceIsFolder'
+            );
+            assert.strictEqual(
+                submenuItems['projectCopy.copyFolderStructure'],
+                'resourceSet && isFileSystemResource && !listMultiSelection && explorerResourceIsFolder'
+            );
+            assert.strictEqual(
+                submenuItems['projectCopy.copySelectedItems'],
+                'resourceSet && isFileSystemResource && listMultiSelection'
+            );
+            assert.strictEqual(
+                submenuItems['projectCopy.excludeContent'],
+                'resourceSet && isFileSystemResource'
+            );
+        });
+
         test('loads the streamlined configuration', () => {
             const config = ConfigurationService.getConfiguration();
 
